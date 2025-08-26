@@ -46,6 +46,18 @@
     grid-column: span 4;
     background: #28a745;
   }
+  .open-sheet {
+    display:block;
+    text-align:center;
+    padding:14px;
+    background:#ffc107;
+    color:#000;
+    font-size:20px;
+    font-weight:bold;
+    border-radius:8px;
+    margin:10px;
+    text-decoration:none;
+  }
 </style>
 </head>
 <body>
@@ -75,6 +87,13 @@
   <button class="btn" onclick="addChar('.')">.</button>
   <button class="btn copy-btn" onclick="copyToClipboard()">Copy ke Clipboard</button>
 </div>
+
+<!-- Tombol tambahan biar bisa langsung buka spreadsheet di mode edit -->
+<a href="https://docs.google.com/spreadsheets/d/1eXScARHRiaFSRehSr42_sZ6l_h1ycrs2pw1nZKbXX6o/edit?usp=sharing"
+   target="_blank"
+   class="open-sheet">
+   ✏️ Buka Spreadsheet untuk Edit
+</a>
 
 <script>
 let currentInput = '';
