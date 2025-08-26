@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spreadsheet Mobile + Button Pilihan</title>
+<style>
+  body { margin: 0; padding: 0; font-family: Arial; display: flex; flex-direction: column; height: 100vh; }
+  .iframe-container {
+    flex: 1 1 auto;
+    overflow: auto;
+  }
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+  .display {
+    padding: 12px;
+    text-align: center;
+    font-size: 24px;
+    background: #e0e0e0;
+    border-radius: 8px;
+    margin: 5px 10px;
+    word-break: break-all;
+  }
+  .button-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 10px;
+    background: #f5f5f5;
+  }
+  .btn {
+    padding: 18px;
+    font-size: 22px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    text-align: center;
+    user-select: none;
+  }
+  .btn:active { background: #0056b3; }
+  .copy-btn {
+    grid-column: span 4;
+    background: #28a745;
+  }
+</style>
+</head>
+<body>
+
+<div class="iframe-container">
+  <iframe src="https://docs.google.com/spreadsheets/d/1eXScARHRiaFSRehSr42_sZ6l_h1ycrs2pw1nZKbXX6o/edit?usp=sharing"></iframe>
+</div>
+
+<div class="display" id="currentValue">0</div>
+
+<div class="button-row">
+  <button class="btn" onclick="addChar('1')">1</button>
+  <button class="btn" onclick="addChar('2')">2</button>
+  <button class="btn" onclick="addChar('3')">3</button>
+  <button class="btn" onclick="backspaceInput()">←</button>
+
+  <button class="btn" onclick="addChar('4')">4</button>
+  <button class="btn" onclick="addChar('5')">5</button>
+  <button class="btn" onclick="addChar('6')">6</button>
+  <button class="btn" onclick="clearInput()">C</button>
+
+  <button class="btn" onclick="addChar('7')">7</button>
+  <button class="btn" onclick="addChar('8')">8</button>
+  <button class="btn" onclick="addChar('9')">9</button>
+  <button class="btn" onclick="addChar('0')">0</button>
+
+  <button class="btn" onclick="addChar('.')">.</button>
+  <button class="btn copy-btn" onclick="copyToClipboard()">Copy ke Clipboard</button>
+</div>
+
+<script>
+let currentInput = '';
+
+function addChar(char) {
+  if(char === '.') {
+    if(currentInput.includes('.')) return;
+    if(currentInput === '') currentInput = '0';
+  }
+  currentInput += char;
+  updateDisplay();
+}
+
+function backspaceInput() {
+  if(currentInput.length > 0) {
+    currentInput = currentInput.slice(0, -1);
+    updateDisplay();
+  }
+}
+
+function clearInput() {
+  currentInput = '';
+  updateDisplay();
+}
+
+function updateDisplay() {
+  document.getElementById('currentValue').textContent = currentInput || '0';
+}
+
+function copyToClipboard() {
+  if(currentInput === '') return;
+  navigator.clipboard.writeText(currentInput).then(()=>{
+    alert("Angka '"+currentInput+"' sudah di-copy. Paste ke sel aktif di spreadsheet!");
+  }, ()=>{
+    alert("Gagal copy angka, silakan coba lagi.");
+  });
+}
+</script>
+
+</body>
+</html>
