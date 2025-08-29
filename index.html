@@ -1,106 +1,161 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spreadsheet Editor Mobile</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.1.0/dist/handsontable.min.css">
-<style>
-  body { font-family: Arial; margin:0; padding:0; }
-  #hot { width: 100%; height: 400px; margin-bottom: 10px; }
-  #keypad { display: flex; flex-wrap: wrap; justify-content: center; gap:5px; padding:5px; }
-  #keypad button { flex:1 1 30%; padding:15px; font-size:18px; border-radius:5px; border:1px solid #333; background:#f0f0f0; cursor:pointer; }
-  #keypad button:active { background:#ccc; }
-  #loginBtn { display:block; margin:10px auto; padding:10px 20px; font-size:18px; cursor:pointer; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Google Sheets via Keypad</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      background: #f9f9f9;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 15px;
+    }
+    table {
+      border-collapse: collapse;
+      margin: auto;
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    td {
+      width: 60px;
+      height: 50px;
+      text-align: center;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    td.active {
+      background: #ffe58f;
+      font-weight: bold;
+    }
+    #keypad {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #keypad button {
+      padding: 15px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    #keypad button:active {
+      background: #0056b3;
+    }
+    #keypad .wide {
+      grid-column: span 3;
+      background: #28a745;
+    }
+    #keypad .clear {
+      background: #dc3545;
+    }
+  </style>
 </head>
 <body>
 
-<button id="loginBtn">Login Google</button>
-<div id="hot"></div>
+<h2>📊 Edit Google Sheet dengan Keypad</h2>
+
+<table id="sheetTable"></table>
 
 <div id="keypad">
-  <button>1</button><button>2</button><button>3</button>
-  <button>4</button><button>5</button><button>6</button>
-  <button>7</button><button>8</button><button>9</button>
-  <button>0</button><button>C</button>
+  <button onclick="enterNum(1)">1</button>
+  <button onclick="enterNum(2)">2</button>
+  <button onclick="enterNum(3)">3</button>
+  <button onclick="enterNum(4)">4</button>
+  <button onclick="enterNum(5)">5</button>
+  <button onclick="enterNum(6)">6</button>
+  <button onclick="enterNum(7)">7</button>
+  <button onclick="enterNum(8)">8</button>
+  <button onclick="enterNum(9)">9</button>
+  <button onclick="enterNum(0)">0</button>
+  <button class="clear" onclick="clearCell()">Clear</button>
+  <button class="wide" onclick="saveCell()">💾 Save</button>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/handsontable@11.1.0/dist/handsontable.min.js"></script>
-<script src="https://apis.google.com/js/api.js"></script>
 <script>
-const SHEET_ID = '1q7PNM5Gc9ptRj_do-ek6bTjZq-R3UPLzj1MMhkM-LYE';
-const RANGE = 'Sheet1';
-const CLIENT_ID = '691043249480-idkuit1b05tc0n8ipo50uveka0h8lk4p.apps.googleusercontent.com'; // dari Google Cloud
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzWuZ2qioohOKEoOixWMAgs-8wEmQZ5SL_mwyc7AFnDgIoAQPjx-HsQ_7Oo5p_nRcjBwA/exec"; // <== Ganti dengan URL Web App Apps Script kamu
 
-let hot;
-let selectedCell = {row: null, col: null};
+let selectedCell = null;
+let sheetData = [];
 
-function initClient() {
-  gapi.load('client:auth2', async () => {
-    await gapi.client.init({
-      clientId: CLIENT_ID,
-      discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
-      scope: "https://www.googleapis.com/auth/spreadsheets"
-    });
-    document.getElementById('loginBtn').onclick = () => {
-      gapi.auth2.getAuthInstance().signIn().then(loadData);
-    };
-  });
-}
-
-// Load data dari Google Sheet
+// Load data dari Google Sheets
 async function loadData() {
-  const response = await gapi.client.sheets.spreadsheets.values.get({
-    spreadsheetId: SHEET_ID,
-    range: RANGE
-  });
+  try {
+    let res = await fetch(WEB_APP_URL);
+    sheetData = await res.json();
 
-  const data = response.result.values || [[]];
-
-  // Inisialisasi Handsontable
-  const container = document.getElementById('hot');
-  hot = new Handsontable(container, {
-    data: data,
-    rowHeaders: true,
-    colHeaders: true,
-    width: '100%',
-    height: 400,
-    licenseKey: 'non-commercial-and-evaluation',
-    afterSelection: (r, c) => {
-      selectedCell.row = r;
-      selectedCell.col = c;
-    }
-  });
+    let table = document.getElementById("sheetTable");
+    table.innerHTML = "";
+    sheetData.forEach((row, i) => {
+      let tr = document.createElement("tr");
+      row.forEach((val, j) => {
+        let td = document.createElement("td");
+        td.innerText = val;
+        td.onclick = () => selectCell(i+1, j+1, td);
+        tr.appendChild(td);
+      });
+      table.appendChild(tr);
+    });
+  } catch(err) {
+    alert("Gagal load data: " + err);
+  }
 }
 
-// Simpan perubahan ke Google Sheet
-async function saveData() {
-  if(!hot) return;
-  const values = hot.getData();
-  await gapi.client.sheets.spreadsheets.values.update({
-    spreadsheetId: SHEET_ID,
-    range: RANGE,
-    valueInputOption: 'USER_ENTERED',
-    resource: { values }
-  });
+function selectCell(row, col, td) {
+  document.querySelectorAll("td").forEach(x => x.classList.remove("active"));
+  td.classList.add("active");
+  selectedCell = {row, col, td};
 }
 
-// Keypad input
-document.querySelectorAll('#keypad button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    if(selectedCell.row === null || selectedCell.col === null) return;
-    let current = hot.getDataAtCell(selectedCell.row, selectedCell.col) || '';
-    if(btn.textContent === 'C'){
-      hot.setDataAtCell(selectedCell.row, selectedCell.col, '');
-    } else {
-      hot.setDataAtCell(selectedCell.row, selectedCell.col, current + btn.textContent);
-    }
-    saveData();
-  });
-});
+function enterNum(num) {
+  if(selectedCell){
+    selectedCell.td.innerText += num;
+  }
+}
 
-window.onload = initClient;
+function clearCell() {
+  if(selectedCell){
+    selectedCell.td.innerText = "";
+  }
+}
+
+async function saveCell() {
+  if(selectedCell){
+    let value = selectedCell.td.innerText;
+    try {
+      await fetch(WEB_APP_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          row: selectedCell.row,
+          col: selectedCell.col,
+          value: value
+        })
+      });
+      alert("✅ Data tersimpan ke Google Sheets!");
+    } catch(err) {
+      alert("❌ Gagal simpan: " + err);
+    }
+  } else {
+    alert("Pilih cell dulu!");
+  }
+}
+
+// Load data pertama kali
+loadData();
 </script>
 </body>
 </html>
