@@ -3,71 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Edit Google Sheets via Keypad</title>
+  <title>Kalkulator JR Wellman Jewellry</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 10px;
-      background: #f9f9f9;
-      text-align: center;
-    }
-    h2 {
-      margin-bottom: 15px;
-    }
-    table {
-      border-collapse: collapse;
-      margin: auto;
-      width: 100%;
-      max-width: 500px;
-      background: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    td {
-      width: 60px;
-      height: 50px;
-      text-align: center;
-      border: 1px solid #ddd;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    td.active {
-      background: #ffe58f;
-      font-weight: bold;
-    }
-    #keypad {
-      margin-top: 20px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      max-width: 300px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    #keypad button {
-      padding: 15px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    #keypad button:active {
-      background: #0056b3;
-    }
-    #keypad .wide {
-      grid-column: span 3;
-      background: #28a745;
-    }
-    #keypad .clear {
-      background: #dc3545;
-    }
+    body { font-family: Arial, sans-serif; padding: 10px; background: #f9f9f9; text-align: center; margin: 0; }
+    h2 { margin: 15px 0; }
+
+    #sheetSelect { margin: 10px; padding: 5px; font-size: 15px; border-radius: 6px; }
+
+    #keypad { position: sticky; bottom: 0; z-index: 100; background: #f9f9f9; padding: 10px 0;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 400px; margin: auto;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.1); border-radius: 10px 10px 0 0; }
+    #keypad button { padding: 15px; font-size: 18px; border: none; border-radius: 10px; background: #007bff; color: white; cursor: pointer; transition: 0.2s; }
+    #keypad button:hover { opacity: 0.9; }
+    #keypad button:active { transform: scale(0.95); }
+    #keypad .wide { grid-column: span 3; background: #28a745; }
+    #keypad .clear { background: #dc3545; }
+
+    table { border-collapse: collapse; margin: 20px auto; width: 100%; max-width: 100%; background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; font-size: 14px; }
+    thead { background: #007bff; color: white; position: sticky; top: 0; z-index: 50; }
+    thead th { padding: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; }
+    tbody td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; cursor: pointer; }
+    tbody tr:nth-child(even) { background: #f9f9f9; }
+    tbody tr:hover td { background: #eaf4ff; }
+    td.active { background: #ffe58f !important; font-weight: bold; border: 2px solid #f0ad4e; }
+    select { padding: 5px; font-size: 13px; border-radius: 6px; }
   </style>
 </head>
 <body>
 
-<h2>📊 Edit Google Sheet dengan Keypad</h2>
+<h2>Kalkulator JR Wellman Jewellry</h2>
+
+<select id="sheetSelect" onchange="loadData(this.value)">
+  <option value="harga">📑 Harga</option>
+  <option value="berat">⚖️ Berat</option>
+</select>
 
 <table id="sheetTable"></table>
 
@@ -81,35 +51,82 @@
   <button onclick="enterNum(7)">7</button>
   <button onclick="enterNum(8)">8</button>
   <button onclick="enterNum(9)">9</button>
+  <button onclick="enterNum('.')">.</button>
   <button onclick="enterNum(0)">0</button>
   <button class="clear" onclick="clearCell()">Clear</button>
   <button class="wide" onclick="saveCell()">💾 Save</button>
 </div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzWuZ2qioohOKEoOixWMAgs-8wEmQZ5SL_mwyc7AFnDgIoAQPjx-HsQ_7Oo5p_nRcjBwA/exec"; // <== Ganti dengan URL Web App Apps Script kamu
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzWuZ2qioohOKEoOixWMAgs-8wEmQZ5SL_mwyc7AFnDgIoAQPjx-HsQ_7Oo5p_nRcjBwA/exec";
 
 let selectedCell = null;
 let sheetData = [];
+let dropdownOptions = [];
 
-// Load data dari Google Sheets
-async function loadData() {
+// Kolom G–N = index 6 sampai 13
+const hiddenCols = Array.from({length: 8}, (_, i) => i + 6);
+
+// Load data by sheet name
+async function loadData(sheet="harga") {
   try {
-    let res = await fetch(WEB_APP_URL);
-    sheetData = await res.json();
+    let res = await fetch(`${WEB_APP_URL}?sheet=${sheet}`);
+    let json = await res.json();
+    sheetData = json.data;
+    dropdownOptions = json.dropdownOptions;
 
     let table = document.getElementById("sheetTable");
     table.innerHTML = "";
-    sheetData.forEach((row, i) => {
-      let tr = document.createElement("tr");
-      row.forEach((val, j) => {
-        let td = document.createElement("td");
-        td.innerText = val;
-        td.onclick = () => selectCell(i+1, j+1, td);
-        tr.appendChild(td);
+
+    if (sheetData.length > 0) {
+      // Header
+      let thead = document.createElement("thead");
+      let headerRow = document.createElement("tr");
+      sheetData[0].forEach((h, j) => {
+        if (!hiddenCols.includes(j)) {
+          let th = document.createElement("th");
+          th.innerText = h;
+          headerRow.appendChild(th);
+        }
       });
-      table.appendChild(tr);
-    });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      // Body
+      let tbody = document.createElement("tbody");
+      for (let i = 1; i < sheetData.length; i++) {
+        let tr = document.createElement("tr");
+        sheetData[i].forEach((val, j) => {
+          if (!hiddenCols.includes(j)) {
+            let td = document.createElement("td");
+
+            // Dropdown di kolom Nama Barang (B / index 1)
+            if (j === 1 && dropdownOptions?.length) {
+              let select = document.createElement("select");
+              dropdownOptions.forEach(opt => {
+                let option = document.createElement("option");
+                option.value = opt;
+                option.text = opt;
+                if (opt === val) option.selected = true;
+                select.appendChild(option);
+              });
+              select.onchange = () => {
+                selectCell(i+1, j+1, td);
+                td.dataset.value = select.value;
+              };
+              td.appendChild(select);
+            } else {
+              td.innerText = val;
+              td.onclick = () => selectCell(i+1, j+1, td);
+            }
+
+            tr.appendChild(td);
+          }
+        });
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+    }
   } catch(err) {
     alert("Gagal load data: " + err);
   }
@@ -122,24 +139,27 @@ function selectCell(row, col, td) {
 }
 
 function enterNum(num) {
-  if(selectedCell){
+  if(selectedCell && !selectedCell.td.querySelector("select")){
     selectedCell.td.innerText += num;
   }
 }
 
 function clearCell() {
-  if(selectedCell){
+  if(selectedCell && !selectedCell.td.querySelector("select")){
     selectedCell.td.innerText = "";
   }
 }
 
 async function saveCell() {
   if(selectedCell){
-    let value = selectedCell.td.innerText;
+    let value = selectedCell.td.querySelector("select") 
+                  ? selectedCell.td.querySelector("select").value 
+                  : selectedCell.td.innerText;
     try {
       await fetch(WEB_APP_URL, {
         method: "POST",
         body: JSON.stringify({
+          sheet: document.getElementById("sheetSelect").value,
           row: selectedCell.row,
           col: selectedCell.col,
           value: value
@@ -154,8 +174,8 @@ async function saveCell() {
   }
 }
 
-// Load data pertama kali
-loadData();
+// pertama load sheet harga
+loadData("harga");
 </script>
 </body>
 </html>
