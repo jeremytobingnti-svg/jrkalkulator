@@ -8,117 +8,71 @@
  body {
   font-family: Arial, sans-serif;
   margin: 0;
-  padding: 0 0 130px 0; /* tambah padding bawah untuk ruang keypad */
+  padding: 0 0 130px 0;
   background: #f9f9f9;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
+h2 { margin: 10px 0; font-size: 18px; text-align: center; }
+#sheetSelect {
+  margin: 5px auto; padding: 6px; font-size: 14px;
+  border-radius: 6px; width: 90%; max-width: 300px;
+}
+table {
+  border-collapse: collapse; width: 100%; table-layout: fixed;
+  background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 8px; overflow: hidden; font-size: 13px;
+  word-wrap: break-word; word-break: break-word;
+}
+thead { background: #007bff; color: white; position: sticky; top: 0; z-index: 50; }
+thead th { padding: 6px; font-size: 11px; text-transform: uppercase; }
+tbody td {
+  padding: 6px; border-bottom: 1px solid #eee; text-align: center;
+  cursor: pointer; font-size: 12px;
+}
+tbody tr:nth-child(even) { background: #f9f9f9; }
+tbody tr:hover td { background: #eaf4ff; }
+td.active { background: #ffe58f !important; font-weight: bold; border: 2px solid #f0ad4e; }
+select { padding: 5px; font-size: 12px; border-radius: 6px; width: 100%; }
 
-    h2 {
-      margin: 10px 0;
-      font-size: 18px;
-      text-align: center;
-    }
-
-    #sheetSelect {
-      margin: 5px auto;
-      padding: 6px;
-      font-size: 14px;
-      border-radius: 6px;
-      width: 90%;
-      max-width: 300px;
-    }
-
-    /* Tabel fullscreen tanpa scroll */
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      table-layout: fixed; /* biar kolom fix width */
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      border-radius: 8px;
-      overflow: hidden;
-      font-size: 13px;
-      word-wrap: break-word;
-      word-break: break-word;
-    }
-    thead {
-      background: #007bff;
-      color: white;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-    thead th {
-      padding: 6px;
-      font-size: 11px;
-      text-transform: uppercase;
-    }
-    tbody td {
-      padding: 6px;
-      border-bottom: 1px solid #eee;
-      text-align: center;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    tbody tr:nth-child(even) {
-      background: #f9f9f9;
-    }
-    tbody tr:hover td {
-      background: #eaf4ff;
-    }
-    td.active {
-      background: #ffe58f !important;
-      font-weight: bold;
-      border: 2px solid #f0ad4e;
-    }
-    select {
-      padding: 5px;
-      font-size: 12px;
-      border-radius: 6px;
-      width: 100%;
-    }
-
-/* Keypad fix di bawah layar */
-#keypad {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  background: #f9f9f9;
-  padding: 1px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  box-shadow: 0 -2px 5px rgba(0,0,0,0.15);
-  border-radius: 12px 12px 0 0;
-  z-index: 1000;
+/* Kolom A bold */
+tbody td:first-child,
+thead th:first-child {
+  font-weight: bold;
 }
 
-    #keypad button {
-      padding: 14px;
-      font-size: 16px;
-      border: none;
-      border-radius: 10px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    #keypad button:hover { opacity: 0.9; }
-    #keypad button:active { transform: scale(0.95); }
-    #keypad .wide { grid-column: span 3; background: #28a745; }
-    #keypad .clear { background: #dc3545; }
+#keypad {
+  position: fixed; bottom: 0; left: 0; right: 0; width: 100%;
+  background: #f9f9f9; padding: 1px; display: grid;
+  grid-template-columns: repeat(3, 1fr); gap: 6px;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.15); border-radius: 12px 12px 0 0;
+  z-index: 1000;
+}
+#keypad button {
+  padding: 14px; font-size: 16px; border: none; border-radius: 10px;
+  background: #007bff; color: white; cursor: pointer; transition: 0.2s;
+}
+#keypad button:hover { opacity: 0.9; }
+#keypad button:active { transform: scale(0.95); }
+#keypad .wide { grid-column: span 3; background: #28a745; }
+#keypad .clear { background: #dc3545; }
 
-    /* Responsive */
-    @media (max-width: 600px) {
-      h2 { font-size: 16px; }
-      #sheetSelect { font-size: 13px; }
-      thead th, tbody td { font-size: 11px; padding: 4px; }
-      #keypad button { font-size: 14px; padding: 12px; }
-    }
+@media (max-width: 600px) {
+  h2 { font-size: 16px; }
+  #sheetSelect { font-size: 13px; }
+  thead th, tbody td { font-size: 11px; padding: 4px; }
+  #keypad button { font-size: 14px; padding: 12px; }
+}
+
+/* Loading overlay */
+#loadingOverlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.8);
+  display: none; justify-content: center; align-items: center;
+  font-size: 18px; font-weight: bold; color: #007bff;
+  z-index: 2000;
+}
   </style>
 </head>
 <body>
@@ -148,6 +102,9 @@
   <button class="wide" onclick="saveCell()">💾 Save</button>
 </div>
 
+<!-- Loading overlay -->
+<div id="loadingOverlay">⏳ Sedang memuat data...</div>
+
 <script>
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzWuZ2qioohOKEoOixWMAgs-8wEmQZ5SL_mwyc7AFnDgIoAQPjx-HsQ_7Oo5p_nRcjBwA/exec";
 
@@ -155,15 +112,34 @@ let selectedCell = null;
 let sheetData = [];
 let dropdownOptions = [];
 
-// sembunyikan kolom 6-13 (opsional, bisa diubah sesuai kebutuhanmu)
-const hiddenCols = Array.from({length: 8}, (_, i) => i + 6);
+// Tentukan kolom mana yang disembunyikan per sheet
+function getHiddenCols(sheet) {
+  if (sheet === "Sheet1") {
+    // F–N (index 5–13) + kolom 25–35 (index 24–34)
+    return [
+      ...Array.from({length: 9}, (_, i) => i + 5),   // 5 s/d 13
+      ...Array.from({length: 11}, (_, i) => i + 24) // 24 s/d 34
+    ];
+  } else if (sheet === "Sheet2") {
+    return [3,4,5,6,7,8]; // D–I
+  } else {
+    let range1 = Array.from({length: 9}, (_, i) => i + 6);   // 6–14
+    let range2 = Array.from({length: 11}, (_, i) => i + 25); // 25–35
+    return [...range1, ...range2];
+  }
+  return [];
+}
 
 async function loadData(sheet="Sheet1") {
+  const overlay = document.getElementById("loadingOverlay");
+  overlay.style.display = "flex";
   try {
     let res = await fetch(`${WEB_APP_URL}?sheetName=${sheet}`);
     let json = await res.json();
     sheetData = json.data;
     dropdownOptions = json.dropdownOptions;
+
+    let hiddenCols = getHiddenCols(sheet);
 
     let table = document.getElementById("sheetTable");
     table.innerHTML = "";
@@ -214,6 +190,8 @@ async function loadData(sheet="Sheet1") {
     }
   } catch(err) {
     alert("Gagal load data: " + err);
+  } finally {
+    overlay.style.display = "none";
   }
 }
 
@@ -259,7 +237,6 @@ async function saveCell() {
   }
 }
 
-// load default
 loadData("Sheet1");
 </script>
 </body>
