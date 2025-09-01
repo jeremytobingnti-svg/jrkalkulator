@@ -5,15 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Kalkulator JR Wellman Jewellry</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f9f9f9;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
+ body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0 0 130px 0; /* tambah padding bawah untuk ruang keypad */
+  background: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 
     h2 {
       margin: 10px 0;
@@ -80,17 +81,22 @@
       width: 100%;
     }
 
-    /* Keypad fix di bawah */
-    #keypad {
-      margin-top: auto;
-      background: #f9f9f9;
-      padding: 8px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-      border-radius: 10px 10px 0 0;
-    }
+/* Keypad fix di bawah layar */
+#keypad {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #f9f9f9;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+  border-radius: 10px 10px 0 0;
+  z-index: 999; /* biar selalu di atas */
+}
+
     #keypad button {
       padding: 14px;
       font-size: 16px;
