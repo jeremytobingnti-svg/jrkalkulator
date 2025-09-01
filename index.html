@@ -5,40 +5,113 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Kalkulator JR Wellman Jewellry</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 10px; background: #f9f9f9; text-align: center; margin: 0; }
-    h2 { margin: 15px 0; font-size: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
 
-    #sheetSelect { margin: 10px; padding: 6px; font-size: 14px; border-radius: 6px; width: 90%; max-width: 300px; }
+    h2 {
+      margin: 10px 0;
+      font-size: 18px;
+      text-align: center;
+    }
 
-    /* Tabel */
-    table { border-collapse: collapse; margin: 10px auto; width: 100%; background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; overflow-x: auto; font-size: 14px; }
-    thead { background: #007bff; color: white; position: sticky; top: 0; z-index: 50; }
-    thead th { padding: 8px; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; }
-    tbody td { padding: 6px; border-bottom: 1px solid #eee; text-align: center; cursor: pointer; }
-    tbody tr:nth-child(even) { background: #f9f9f9; }
-    tbody tr:hover td { background: #eaf4ff; }
-    td.active { background: #ffe58f !important; font-weight: bold; border: 2px solid #f0ad4e; }
-    select { padding: 5px; font-size: 13px; border-radius: 6px; }
+    #sheetSelect {
+      margin: 5px auto;
+      padding: 6px;
+      font-size: 14px;
+      border-radius: 6px;
+      width: 90%;
+      max-width: 300px;
+    }
 
-    /* Keypad */
-    #keypad { position: sticky; bottom: 0; z-index: 100; background: #f9f9f9; padding: 10px 0;
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 500px; margin: auto;
-      box-shadow: 0 -2px 5px rgba(0,0,0,0.1); border-radius: 10px 10px 0 0; }
-    #keypad button { padding: 14px; font-size: 18px; border: none; border-radius: 10px; background: #007bff; color: white; cursor: pointer; transition: 0.2s; }
+    /* Tabel fullscreen tanpa scroll */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed; /* biar kolom fix width */
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 13px;
+      word-wrap: break-word;
+      word-break: break-word;
+    }
+    thead {
+      background: #007bff;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    thead th {
+      padding: 6px;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    tbody td {
+      padding: 6px;
+      border-bottom: 1px solid #eee;
+      text-align: center;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    tbody tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    tbody tr:hover td {
+      background: #eaf4ff;
+    }
+    td.active {
+      background: #ffe58f !important;
+      font-weight: bold;
+      border: 2px solid #f0ad4e;
+    }
+    select {
+      padding: 5px;
+      font-size: 12px;
+      border-radius: 6px;
+      width: 100%;
+    }
+
+    /* Keypad fix di bawah */
+    #keypad {
+      margin-top: auto;
+      background: #f9f9f9;
+      padding: 8px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+      border-radius: 10px 10px 0 0;
+    }
+    #keypad button {
+      padding: 14px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+    }
     #keypad button:hover { opacity: 0.9; }
     #keypad button:active { transform: scale(0.95); }
     #keypad .wide { grid-column: span 3; background: #28a745; }
     #keypad .clear { background: #dc3545; }
 
-    /* Responsive untuk HP */
+    /* Responsive */
     @media (max-width: 600px) {
-      h2 { font-size: 18px; }
-      table { font-size: 12px; }
-      thead th { font-size: 11px; padding: 6px; }
-      tbody td { padding: 5px; font-size: 12px; }
-      #sheetSelect { font-size: 13px; width: 95%; }
-      #keypad button { padding: 12px; font-size: 16px; }
+      h2 { font-size: 16px; }
+      #sheetSelect { font-size: 13px; }
+      thead th, tbody td { font-size: 11px; padding: 4px; }
+      #keypad button { font-size: 14px; padding: 12px; }
     }
   </style>
 </head>
@@ -51,9 +124,7 @@
   <option value="berat">⚖️ Berat</option>
 </select>
 
-<div style="overflow-x:auto;">
-  <table id="sheetTable"></table>
-</div>
+<table id="sheetTable"></table>
 
 <div id="keypad">
   <button onclick="enterNum(1)">1</button>
