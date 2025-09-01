@@ -117,15 +117,11 @@ function getHiddenCols(sheet) {
   if (sheet === "Sheet1") {
     // F–N (index 5–13) + kolom 25–35 (index 24–34)
     return [
-      ...Array.from({length: 9}, (_, i) => i + 5),   // 5 s/d 13
-      ...Array.from({length: 11}, (_, i) => i + 24) // 24 s/d 34
+      ...Array.from({length: 9}, (_, i) => i + 5),
+      ...Array.from({length: 11}, (_, i) => i + 24)
     ];
   } else if (sheet === "Sheet2") {
     return [3,4,5,6,7,8]; // D–I
-  } else {
-    let range1 = Array.from({length: 9}, (_, i) => i + 6);   // 6–14
-    let range2 = Array.from({length: 11}, (_, i) => i + 25); // 25–35
-    return [...range1, ...range2];
   }
   return [];
 }
@@ -229,6 +225,8 @@ async function saveCell() {
         })
       });
       alert("✅ Data tersimpan ke Google Sheets!");
+      // 🔄 otomatis refresh tabel setelah save
+      loadData(document.getElementById("sheetSelect").value);
     } catch(err) {
       alert("❌ Gagal simpan: " + err);
     }
