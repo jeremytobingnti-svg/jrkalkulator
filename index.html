@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Kalkulator JR Wellman Jewellry</title>
+  <title>Kalkulator JR Wellman Jewellery</title>
   <style>
  body {
   font-family: Arial, sans-serif;
@@ -14,7 +14,6 @@
   flex-direction: column;
   min-height: 100vh;
 }
-
 
     h2 {
       margin: 10px 0;
@@ -124,11 +123,11 @@
 </head>
 <body>
 
-<h2>Kalkulator JR Wellman Jewellry</h2>
+<h2>Kalkulator JR Wellman Jewellery</h2>
 
 <select id="sheetSelect" onchange="loadData(this.value)">
-  <option value="harga">📑 Harga</option>
-  <option value="berat">⚖️ Berat</option>
+  <option value="Sheet1">📑 Harga</option>
+  <option value="Sheet2">⚖️ Berat</option>
 </select>
 
 <table id="sheetTable"></table>
@@ -155,11 +154,13 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzWuZ2qioohOKEoOixW
 let selectedCell = null;
 let sheetData = [];
 let dropdownOptions = [];
+
+// sembunyikan kolom 6-13 (opsional, bisa diubah sesuai kebutuhanmu)
 const hiddenCols = Array.from({length: 8}, (_, i) => i + 6);
 
-async function loadData(sheet="harga") {
+async function loadData(sheet="Sheet1") {
   try {
-    let res = await fetch(`${WEB_APP_URL}?sheet=${sheet}`);
+    let res = await fetch(`${WEB_APP_URL}?sheetName=${sheet}`);
     let json = await res.json();
     sheetData = json.data;
     dropdownOptions = json.dropdownOptions;
@@ -243,7 +244,7 @@ async function saveCell() {
       await fetch(WEB_APP_URL, {
         method: "POST",
         body: JSON.stringify({
-          sheet: document.getElementById("sheetSelect").value,
+          sheetName: document.getElementById("sheetSelect").value,
           row: selectedCell.row,
           col: selectedCell.col,
           value: value
@@ -258,11 +259,8 @@ async function saveCell() {
   }
 }
 
-loadData("harga");
+// load default
+loadData("Sheet1");
 </script>
 </body>
 </html>
-
-
-
-
