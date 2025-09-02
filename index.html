@@ -5,74 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Kalkulator JR Wellman Jewellery</title>
   <style>
- body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0 0 130px 0;
-  background: #f9f9f9;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-h2 { margin: 10px 0; font-size: 18px; text-align: center; }
-#sheetSelect {
-  margin: 5px auto; padding: 6px; font-size: 14px;
-  border-radius: 6px; width: 90%; max-width: 300px;
-}
-table {
-  border-collapse: collapse; width: 100%; table-layout: fixed;
-  background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  border-radius: 8px; overflow: hidden; font-size: 13px;
-  word-wrap: break-word; word-break: break-word;
-}
-thead { background: #007bff; color: white; position: sticky; top: 0; z-index: 50; }
-thead th { padding: 6px; font-size: 11px; text-transform: uppercase; }
-tbody td {
-  padding: 6px; border-bottom: 1px solid #eee; text-align: center;
-  cursor: pointer; font-size: 12px;
-}
-tbody tr:nth-child(even) { background: #f9f9f9; }
-tbody tr:hover td { background: #eaf4ff; }
-td.active { background: #ffe58f !important; font-weight: bold; border: 2px solid #f0ad4e; }
-select { padding: 5px; font-size: 12px; border-radius: 6px; width: 100%; }
-
-/* Kolom A bold */
-tbody td:first-child,
-thead th:first-child {
-  font-weight: bold;
-}
-
-#keypad {
-  position: fixed; bottom: 0; left: 0; right: 0; width: 100%;
-  background: #f9f9f9; padding: 1px; display: grid;
-  grid-template-columns: repeat(3, 1fr); gap: 6px;
-  box-shadow: 0 -2px 5px rgba(0,0,0,0.15); border-radius: 12px 12px 0 0;
-  z-index: 1000;
-}
-#keypad button {
-  padding: 14px; font-size: 16px; border: none; border-radius: 10px;
-  background: #007bff; color: white; cursor: pointer; transition: 0.2s;
-}
-#keypad button:hover { opacity: 0.9; }
-#keypad button:active { transform: scale(0.95); }
-#keypad .wide { grid-column: span 3; background: #28a745; }
-#keypad .clear { background: #dc3545; }
-
-@media (max-width: 600px) {
-  h2 { font-size: 16px; }
-  #sheetSelect { font-size: 13px; }
-  thead th, tbody td { font-size: 11px; padding: 4px; }
-  #keypad button { font-size: 14px; padding: 12px; }
-}
-
-/* Loading overlay */
-#loadingOverlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(255,255,255,0.8);
-  display: none; justify-content: center; align-items: center;
-  font-size: 18px; font-weight: bold; color: #007bff;
-  z-index: 2000;
-}
+    body { font-family: Arial, sans-serif; margin:0; padding:0 0 130px 0; background:#f9f9f9; display:flex; flex-direction:column; min-height:100vh; }
+    h2 { margin:10px 0; font-size:18px; text-align:center; }
+    #sheetSelect { margin:5px auto; padding:6px; font-size:14px; border-radius:6px; width:90%; max-width:300px; }
+    table { border-collapse:collapse; width:100%; table-layout:fixed; background:white; box-shadow:0 2px 8px rgba(0,0,0,0.1); border-radius:8px; overflow:hidden; font-size:13px; word-wrap:break-word; word-break:break-word; }
+    thead { background:#007bff; color:white; position:sticky; top:0; z-index:50; }
+    thead th { padding:6px; font-size:11px; text-transform:uppercase; }
+    tbody td { padding:6px; border-bottom:1px solid #eee; text-align:center; cursor:pointer; font-size:12px; }
+    tbody tr:nth-child(even) { background:#f9f9f9; }
+    tbody tr:hover td { background:#eaf4ff; }
+    td.active { background:#ffe58f !important; font-weight:bold; border:2px solid #f0ad4e; }
+    select { padding:5px; font-size:12px; border-radius:6px; width:100%; }
+    tbody td:first-child, thead th:first-child { font-weight:bold; }
+    #keypad { position:fixed; bottom:0; left:0; right:0; width:100%; background:#f9f9f9; padding:1px; display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; box-shadow:0 -2px 5px rgba(0,0,0,0.15); border-radius:12px 12px 0 0; z-index:1000; }
+    #keypad button { padding:14px; font-size:16px; border:none; border-radius:10px; background:#007bff; color:white; cursor:pointer; transition:0.2s; }
+    #keypad button:hover { opacity:0.9; }
+    #keypad button:active { transform:scale(0.95); }
+    #keypad .wide { grid-column:span 3; background:#28a745; }
+    #keypad .clear { background:#dc3545; }
+    @media (max-width:600px){ h2{font-size:16px;} #sheetSelect{font-size:13px;} thead th,tbody td{font-size:11px;padding:4px;} #keypad button{font-size:14px;padding:12px;} }
+    #loadingOverlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.8); display:none; justify-content:center; align-items:center; font-size:18px; font-weight:bold; color:#007bff; z-index:2000; }
   </style>
 </head>
 <body>
@@ -102,26 +54,20 @@ thead th:first-child {
   <button class="wide" onclick="saveCell()">💾 Save</button>
 </div>
 
-<!-- Loading overlay -->
 <div id="loadingOverlay">⏳ Sedang memuat data...</div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzWuZ2qioohOKEoOixWMAgs-8wEmQZ5SL_mwyc7AFnDgIoAQPjx-HsQ_7Oo5p_nRcjBwA/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzWuZ2qioohOKEoOixWMAgs-8wEmQZ5SL_mwyc7AFnDgIoAQPjx-HsQ_7Oo5p_nRcjBwA/exec"; 
 
 let selectedCell = null;
 let sheetData = [];
-let dropdownOptions = [];
+let dropdownOptions = {};
 
-// Tentukan kolom mana yang disembunyikan per sheet
 function getHiddenCols(sheet) {
   if (sheet === "Sheet1") {
-    // F–N (index 5–13) + kolom 25–35 (index 24–34)
-    return [
-      ...Array.from({length: 9}, (_, i) => i + 5),
-      ...Array.from({length: 11}, (_, i) => i + 24)
-    ];
+    return [...Array.from({length:9},(_,i)=>i+5), ...Array.from({length:11},(_,i)=>i+24)];
   } else if (sheet === "Sheet2") {
-    return [3,4,5,6,7,8]; // D–I
+    return [3,4,5,6,7,8];
   }
   return [];
 }
@@ -132,11 +78,13 @@ async function loadData(sheet="Sheet1") {
   try {
     let res = await fetch(`${WEB_APP_URL}?sheetName=${sheet}`);
     let json = await res.json();
+
+    if (json.status !== "success") throw new Error(json.message);
+
     sheetData = json.data;
-    dropdownOptions = json.dropdownOptions;
+    dropdownOptions = json.dropdownOptions || {};
 
     let hiddenCols = getHiddenCols(sheet);
-
     let table = document.getElementById("sheetTable");
     table.innerHTML = "";
 
@@ -154,29 +102,33 @@ async function loadData(sheet="Sheet1") {
       table.appendChild(thead);
 
       let tbody = document.createElement("tbody");
-      for (let i = 1; i < sheetData.length; i++) {
+      for (let i=1; i<sheetData.length; i++) {
         let tr = document.createElement("tr");
         sheetData[i].forEach((val, j) => {
           if (!hiddenCols.includes(j)) {
             let td = document.createElement("td");
-            if (j === 1 && dropdownOptions?.length) {
+
+            // ✅ kolom B (index 1) → dropdown per baris
+            if (j === 1 && dropdownOptions[i+1]) {
               let select = document.createElement("select");
-              dropdownOptions.forEach(opt => {
+              dropdownOptions[i+1].forEach(opt => {
                 let option = document.createElement("option");
                 option.value = opt;
                 option.text = opt;
                 if (opt === val) option.selected = true;
                 select.appendChild(option);
               });
-              select.onchange = () => {
-                selectCell(i+1, j+1, td);
-                td.dataset.value = select.value;
+              select.onchange = async () => {
+                // update ke sheet lalu reload ulang semua data
+                await saveDirect(i+1, j+1, select.value);
+                loadData(document.getElementById("sheetSelect").value);
               };
               td.appendChild(select);
             } else {
               td.innerText = val;
               td.onclick = () => selectCell(i+1, j+1, td);
             }
+
             tr.appendChild(td);
           }
         });
@@ -198,40 +150,42 @@ function selectCell(row, col, td) {
 }
 
 function enterNum(num) {
-  if(selectedCell && !selectedCell.td.querySelector("select")){
+  if (selectedCell && !selectedCell.td.querySelector("select")) {
     selectedCell.td.innerText += num;
   }
 }
 
 function clearCell() {
-  if(selectedCell && !selectedCell.td.querySelector("select")){
+  if (selectedCell && !selectedCell.td.querySelector("select")) {
     selectedCell.td.innerText = "";
   }
 }
 
 async function saveCell() {
-  if(selectedCell){
+  if (selectedCell) {
     let value = selectedCell.td.querySelector("select") 
                   ? selectedCell.td.querySelector("select").value 
                   : selectedCell.td.innerText;
-    try {
-      await fetch(WEB_APP_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          sheetName: document.getElementById("sheetSelect").value,
-          row: selectedCell.row,
-          col: selectedCell.col,
-          value: value
-        })
-      });
-      alert("✅ Data tersimpan ke Google Sheets!");
-      // 🔄 otomatis refresh tabel setelah save
-      loadData(document.getElementById("sheetSelect").value);
-    } catch(err) {
-      alert("❌ Gagal simpan: " + err);
-    }
+    await saveDirect(selectedCell.row, selectedCell.col, value);
+    loadData(document.getElementById("sheetSelect").value);
   } else {
     alert("Pilih cell dulu!");
+  }
+}
+
+async function saveDirect(row, col, value) {
+  try {
+    await fetch(WEB_APP_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        sheetName: document.getElementById("sheetSelect").value,
+        row: row,
+        col: col,
+        value: value
+      })
+    });
+  } catch(err) {
+    alert("❌ Gagal simpan: " + err);
   }
 }
 
