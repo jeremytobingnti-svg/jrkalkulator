@@ -63,6 +63,16 @@ let selectedCell = null;
 let sheetData = [];
 let dropdownOptions = {};
 
+// ✅ fungsi format angka ribuan
+function formatNumber(num) {
+  if (num === "" || num === null || isNaN(num)) return num;
+  return Number(num).toLocaleString("id-ID");
+}
+function parseNumber(str) {
+  if (!str) return str;
+  return str.toString().replace(/\./g, "");
+}
+
 function getHiddenCols(sheet) {
   if (sheet === "Sheet1") {
     return [...Array.from({length:9},(_,i)=>i+5), ...Array.from({length:11},(_,i)=>i+24)];
@@ -119,13 +129,13 @@ async function loadData(sheet="Sheet1") {
                 select.appendChild(option);
               });
               select.onchange = async () => {
-                // update ke sheet lalu reload ulang semua data
                 await saveDirect(i+1, j+1, select.value);
                 loadData(document.getElementById("sheetSelect").value);
               };
               td.appendChild(select);
             } else {
-              td.innerText = val;
+              // ✅ tampilkan angka dengan format ribuan
+              td.innerText = (!isNaN(val) && val !== "") ? formatNumber(val) : val;
               td.onclick = () => selectCell(i+1, j+1, td);
             }
 
@@ -151,7 +161,9 @@ function selectCell(row, col, td) {
 
 function enterNum(num) {
   if (selectedCell && !selectedCell.td.querySelector("select")) {
-    selectedCell.td.innerText += num;
+    let raw = parseNumber(selectedCell.td.innerText || "");
+    raw = raw + "" + num;
+    selectedCell.td.innerText = formatNumber(raw);
   }
 }
 
@@ -165,7 +177,7 @@ async function saveCell() {
   if (selectedCell) {
     let value = selectedCell.td.querySelector("select") 
                   ? selectedCell.td.querySelector("select").value 
-                  : selectedCell.td.innerText;
+                  : parseNumber(selectedCell.td.innerText);
     await saveDirect(selectedCell.row, selectedCell.col, value);
     loadData(document.getElementById("sheetSelect").value);
   } else {
