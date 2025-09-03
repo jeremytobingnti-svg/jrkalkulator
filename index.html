@@ -15,6 +15,7 @@
     tbody tr:nth-child(even) { background:#f9f9f9; }
     tbody tr:hover td { background:#eaf4ff; }
     td.active { background:#ffe58f !important; font-weight:bold; border:2px solid #f0ad4e; }
+    td.locked { background:#f0f0f0; color:#999; cursor:not-allowed; }
     select { padding:5px; font-size:12px; border-radius:6px; width:100%; }
     tbody td:first-child, thead th:first-child { font-weight:bold; }
 
@@ -96,6 +97,16 @@ function getHiddenCols(sheet) {
   return [];
 }
 
+function isLockedCell(sheet, row, col) {
+  if (sheet === "Sheet1") {
+    // Lock kolom C (3) & E (5), kecuali baris 22
+    if ((col === 3 || col === 5) && row !== 22) {
+      return true;
+    }
+  }
+  return false;
+}
+
 async function loadData(sheet="Sheet1") {
   const overlay = document.getElementById("loadingOverlay");
   overlay.style.display = "flex";
@@ -125,53 +136,67 @@ async function loadData(sheet="Sheet1") {
       thead.appendChild(headerRow);
       table.appendChild(thead);
 
-      let tbody = document.createElement("tbody");
-      for (let i=1; i<sheetData.length; i++) {
-        let tr = document.createElement("tr");
-        sheetData[i].forEach((val, j) => {
-          if (!hiddenCols.includes(j)) {
-            let td = document.createElement("td");
+     let tbody = document.createElement("tbody");
+for (let i=1; i<sheetData.length; i++) {
+  let tr = document.createElement("tr");
 
-            // Kolom B pakai dropdown
-            if (j === 1 && dropdownOptions[i+1]) {
-              let select = document.createElement("select");
-              dropdownOptions[i+1].forEach(opt => {
-                let option = document.createElement("option");
-                option.value = opt;
-                option.text = opt;
-                if (opt === val) option.selected = true;
-                select.appendChild(option);
-              });
-              select.onchange = async () => {
-                let edit = { row: i+1, col: j+1, value: select.value };
-                await fetch(WEB_APP_URL, {
-                  method: "POST",
-                  body: JSON.stringify({
-                    sheetName: document.getElementById("sheetSelect").value,
-                    edits: [edit]
-                  })
-                });
-                loadData(document.getElementById("sheetSelect").value);
-              };
-              td.appendChild(select);
-            } else {
-              if (sheet === "Sheet1") {
-                if (j === 3) {
-                  td.innerText = val; // Kolom D angka mentah (bisa desimal)
-                } else {
-                  td.innerText = (!isNaN(val) && val !== "") ? formatRupiah(val) : val;
-                }
-              } else if (sheet === "Sheet2") {
-                td.innerText = val; // Semua angka mentah (desimal OK)
-              }
-              td.onclick = () => selectCell(i+1, j+1, td);
-            }
-            tr.appendChild(td);
-          }
+  // ✅ Tambahkan bold di baris 6 & 14
+  if (i+1 === 6 || i+1 === 14) {
+    tr.style.fontWeight = "bold";
+  }
+
+  sheetData[i].forEach((val, j) => {
+    if (!hiddenCols.includes(j)) {
+      let td = document.createElement("td");
+
+      // Kolom B pakai dropdown
+      if (j === 1 && dropdownOptions[i+1]) {
+        let select = document.createElement("select");
+        dropdownOptions[i+1].forEach(opt => {
+          let option = document.createElement("option");
+          option.value = opt;
+          option.text = opt;
+          if (opt === val) option.selected = true;
+          select.appendChild(option);
         });
-        tbody.appendChild(tr);
+        select.onchange = async () => {
+          let edit = { row: i+1, col: j+1, value: select.value };
+          await fetch(WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify({
+              sheetName: document.getElementById("sheetSelect").value,
+              edits: [edit]
+            })
+          });
+          loadData(document.getElementById("sheetSelect").value);
+        };
+        td.appendChild(select);
+      } else {
+        if (sheet === "Sheet1") {
+          if (j === 3) {
+            td.innerText = val; 
+          } else {
+            td.innerText = (!isNaN(val) && val !== "") ? formatRupiah(val) : val;
+          }
+        } else if (sheet === "Sheet2") {
+          td.innerText = val;
+        }
+
+        td.onclick = () => {
+          if (!isLockedCell(sheet, i+1, j+1)) {
+            selectCell(i+1, j+1, td);
+          } else {
+            selectedCell = null;
+          }
+        };
       }
-      table.appendChild(tbody);
+      tr.appendChild(td);
+    }
+  });
+  tbody.appendChild(tr);
+}
+table.appendChild(tbody);
+
     }
   } catch(err) {
     alert("Gagal load data: " + err);
@@ -189,6 +214,8 @@ function selectCell(row, col, td) {
 function enterNum(num) {
   if (selectedCell && !selectedCell.td.querySelector("select")) {
     let sheet = document.getElementById("sheetSelect").value;
+    if (isLockedCell(sheet, selectedCell.row, selectedCell.col)) return; // prevent edit
+
     let current = selectedCell.td.innerText.replace("Rp","").replace(/\s/g,"").replace(/\./g,"").replace(/,/g,"").trim();
     if (num === "." && current.includes(".")) return;
     let newVal = current + num;
@@ -207,6 +234,8 @@ function enterNum(num) {
 
 function clearCell() {
   if (selectedCell && !selectedCell.td.querySelector("select")) {
+    let sheet = document.getElementById("sheetSelect").value;
+    if (isLockedCell(sheet, selectedCell.row, selectedCell.col)) return; // prevent clear
     selectedCell.td.innerText = "";
     editedCells[`${selectedCell.row},${selectedCell.col}`] = {
       row: selectedCell.row, col: selectedCell.col, value: ""
@@ -236,5 +265,6 @@ async function saveAll() {
 
 loadData("Sheet1");
 </script>
+
 </body>
 </html>
