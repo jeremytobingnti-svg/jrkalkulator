@@ -39,19 +39,19 @@
 <table id="sheetTable"></table>
 
 <div id="keypad">
-  <button onclick="enterNum(1)">1</button>
-  <button onclick="enterNum(2)">2</button>
-  <button onclick="enterNum(3)">3</button>
-  <button onclick="enterNum(4)">4</button>
-  <button onclick="enterNum(5)">5</button>
-  <button onclick="enterNum(6)">6</button>
-  <button onclick="enterNum(7)">7</button>
-  <button onclick="enterNum(8)">8</button>
-  <button onclick="enterNum(9)">9</button>
+  <button onclick="enterNum('1')">1</button>
+  <button onclick="enterNum('2')">2</button>
+  <button onclick="enterNum('3')">3</button>
+  <button onclick="enterNum('4')">4</button>
+  <button onclick="enterNum('5')">5</button>
+  <button onclick="enterNum('6')">6</button>
+  <button onclick="enterNum('7')">7</button>
+  <button onclick="enterNum('8')">8</button>
+  <button onclick="enterNum('9')">9</button>
   <button onclick="enterNum('.')">.</button>
-  <button onclick="enterNum(0)">0</button>
+  <button onclick="enterNum('0')">0</button>
   <button class="clear" onclick="clearCell()">Clear</button>
-  <button class="wide" onclick="saveCell()">💾 Save</button>
+  <button class="wide" onclick="saveAll()">💾 Save</button>
 </div>
 
 <div id="loadingOverlay">⏳ Sedang memuat data...</div>
@@ -62,15 +62,15 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzWuZ2qioohOKEoOixW
 let selectedCell = null;
 let sheetData = [];
 let dropdownOptions = {};
+let editedCells = {};
 
-// ✅ fungsi format angka ribuan
 function formatNumber(num) {
   if (num === "" || num === null || isNaN(num)) return num;
-  return Number(num).toLocaleString("id-ID");
+  return Number(num).toLocaleString("id-ID", { minimumFractionDigits: 0, maximumFractionDigits: 10 });
 }
 function parseNumber(str) {
-  if (!str) return str;
-  return str.toString().replace(/\./g, "");
+  if (!str) return "";
+  return str.replace(/\./g, "").replace(",", "."); 
 }
 
 function getHiddenCols(sheet) {
@@ -88,11 +88,11 @@ async function loadData(sheet="Sheet1") {
   try {
     let res = await fetch(`${WEB_APP_URL}?sheetName=${sheet}`);
     let json = await res.json();
-
     if (json.status !== "success") throw new Error(json.message);
 
     sheetData = json.data;
     dropdownOptions = json.dropdownOptions || {};
+    editedCells = {};
 
     let hiddenCols = getHiddenCols(sheet);
     let table = document.getElementById("sheetTable");
@@ -118,7 +118,6 @@ async function loadData(sheet="Sheet1") {
           if (!hiddenCols.includes(j)) {
             let td = document.createElement("td");
 
-            // ✅ kolom B (index 1) → dropdown per baris
             if (j === 1 && dropdownOptions[i+1]) {
               let select = document.createElement("select");
               dropdownOptions[i+1].forEach(opt => {
@@ -128,17 +127,28 @@ async function loadData(sheet="Sheet1") {
                 if (opt === val) option.selected = true;
                 select.appendChild(option);
               });
+
+              // 🔥 auto save + refresh saat dropdown berubah
               select.onchange = async () => {
-                await saveDirect(i+1, j+1, select.value);
+                let edit = { row: i+1, col: j+1, value: select.value };
+                await fetch(WEB_APP_URL, {
+                  method: "POST",
+                  body: JSON.stringify({
+                    sheetName: document.getElementById("sheetSelect").value,
+                    edits: [edit]
+                  })
+                });
                 loadData(document.getElementById("sheetSelect").value);
               };
               td.appendChild(select);
             } else {
-              // ✅ tampilkan angka dengan format ribuan
-              td.innerText = (!isNaN(val) && val !== "") ? formatNumber(val) : val;
+              if (j === 3) {
+                td.innerText = val;
+              } else {
+                td.innerText = (!isNaN(val) && val !== "") ? formatNumber(val) : val;
+              }
               td.onclick = () => selectCell(i+1, j+1, td);
             }
-
             tr.appendChild(td);
           }
         });
@@ -161,41 +171,41 @@ function selectCell(row, col, td) {
 
 function enterNum(num) {
   if (selectedCell && !selectedCell.td.querySelector("select")) {
-    let raw = parseNumber(selectedCell.td.innerText || "");
-    raw = raw + "" + num;
-    selectedCell.td.innerText = formatNumber(raw);
+    let current = selectedCell.td.innerText || "";
+    if (num === "." && current.includes(".")) return;
+    let newVal = current + num;
+    selectedCell.td.innerText = newVal;
+    editedCells[`${selectedCell.row},${selectedCell.col}`] = {
+      row: selectedCell.row, col: selectedCell.col,
+      value: parseFloat(parseNumber(newVal))
+    };
   }
 }
 
 function clearCell() {
   if (selectedCell && !selectedCell.td.querySelector("select")) {
     selectedCell.td.innerText = "";
+    editedCells[`${selectedCell.row},${selectedCell.col}`] = {
+      row: selectedCell.row, col: selectedCell.col, value: ""
+    };
   }
 }
 
-async function saveCell() {
-  if (selectedCell) {
-    let value = selectedCell.td.querySelector("select") 
-                  ? selectedCell.td.querySelector("select").value 
-                  : parseNumber(selectedCell.td.innerText);
-    await saveDirect(selectedCell.row, selectedCell.col, value);
-    loadData(document.getElementById("sheetSelect").value);
-  } else {
-    alert("Pilih cell dulu!");
+async function saveAll() {
+  if (Object.keys(editedCells).length === 0) {
+    alert("Tidak ada perubahan untuk disimpan.");
+    return;
   }
-}
-
-async function saveDirect(row, col, value) {
   try {
     await fetch(WEB_APP_URL, {
       method: "POST",
       body: JSON.stringify({
         sheetName: document.getElementById("sheetSelect").value,
-        row: row,
-        col: col,
-        value: value
+        edits: Object.values(editedCells)
       })
     });
+    alert("✅ Perubahan tersimpan!");
+    loadData(document.getElementById("sheetSelect").value);
   } catch(err) {
     alert("❌ Gagal simpan: " + err);
   }
