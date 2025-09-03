@@ -136,67 +136,65 @@ async function loadData(sheet="Sheet1") {
       thead.appendChild(headerRow);
       table.appendChild(thead);
 
-     let tbody = document.createElement("tbody");
-for (let i=1; i<sheetData.length; i++) {
-  let tr = document.createElement("tr");
+      let tbody = document.createElement("tbody");
+      for (let i=1; i<sheetData.length; i++) {
+        let tr = document.createElement("tr");
 
-  // ✅ Tambahkan bold di baris 6 & 14
-  if (i+1 === 6 || i+1 === 14) {
-    tr.style.fontWeight = "bold";
-  }
-
-  sheetData[i].forEach((val, j) => {
-    if (!hiddenCols.includes(j)) {
-      let td = document.createElement("td");
-
-      // Kolom B pakai dropdown
-      if (j === 1 && dropdownOptions[i+1]) {
-        let select = document.createElement("select");
-        dropdownOptions[i+1].forEach(opt => {
-          let option = document.createElement("option");
-          option.value = opt;
-          option.text = opt;
-          if (opt === val) option.selected = true;
-          select.appendChild(option);
-        });
-        select.onchange = async () => {
-          let edit = { row: i+1, col: j+1, value: select.value };
-          await fetch(WEB_APP_URL, {
-            method: "POST",
-            body: JSON.stringify({
-              sheetName: document.getElementById("sheetSelect").value,
-              edits: [edit]
-            })
-          });
-          loadData(document.getElementById("sheetSelect").value);
-        };
-        td.appendChild(select);
-      } else {
-        if (sheet === "Sheet1") {
-          if (j === 3) {
-            td.innerText = val; 
-          } else {
-            td.innerText = (!isNaN(val) && val !== "") ? formatRupiah(val) : val;
-          }
-        } else if (sheet === "Sheet2") {
-          td.innerText = val;
+        if (i+1 === 6 || i+1 === 14) {
+          tr.style.fontWeight = "bold";
         }
 
-        td.onclick = () => {
-          if (!isLockedCell(sheet, i+1, j+1)) {
-            selectCell(i+1, j+1, td);
-          } else {
-            selectedCell = null;
-          }
-        };
-      }
-      tr.appendChild(td);
-    }
-  });
-  tbody.appendChild(tr);
-}
-table.appendChild(tbody);
+        sheetData[i].forEach((val, j) => {
+          if (!hiddenCols.includes(j)) {
+            let td = document.createElement("td");
 
+            // Kolom B pakai dropdown
+            if (j === 1 && dropdownOptions[i+1]) {
+              let select = document.createElement("select");
+              dropdownOptions[i+1].forEach(opt => {
+                let option = document.createElement("option");
+                option.value = opt;
+                option.text = opt;
+                if (opt === val) option.selected = true;
+                select.appendChild(option);
+              });
+              select.onchange = async () => {
+                let edit = { row: i+1, col: j+1, value: select.value };
+                await fetch(WEB_APP_URL, {
+                  method: "POST",
+                  body: JSON.stringify({
+                    sheetName: document.getElementById("sheetSelect").value,
+                    edits: [edit]
+                  })
+                });
+                loadData(document.getElementById("sheetSelect").value);
+              };
+              td.appendChild(select);
+            } else {
+              if (sheet === "Sheet1") {
+                if (j === 3) {
+                  td.innerText = val; // ✅ Kolom D tampil mentah (desimal)
+                } else {
+                  td.innerText = (!isNaN(val) && val !== "") ? formatRupiah(val) : val;
+                }
+              } else if (sheet === "Sheet2") {
+                td.innerText = val;
+              }
+
+              td.onclick = () => {
+                if (!isLockedCell(sheet, i+1, j+1)) {
+                  selectCell(i+1, j+1, td);
+                } else {
+                  selectedCell = null;
+                }
+              };
+            }
+            tr.appendChild(td);
+          }
+        });
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
     }
   } catch(err) {
     alert("Gagal load data: " + err);
@@ -214,28 +212,46 @@ function selectCell(row, col, td) {
 function enterNum(num) {
   if (selectedCell && !selectedCell.td.querySelector("select")) {
     let sheet = document.getElementById("sheetSelect").value;
-    if (isLockedCell(sheet, selectedCell.row, selectedCell.col)) return; // prevent edit
+    if (isLockedCell(sheet, selectedCell.row, selectedCell.col)) return;
 
-    let current = selectedCell.td.innerText.replace("Rp","").replace(/\s/g,"").replace(/\./g,"").replace(/,/g,"").trim();
-    if (num === "." && current.includes(".")) return;
-    let newVal = current + num;
+    let current = selectedCell.td.innerText.trim();
 
-    if (sheet === "Sheet1" && selectedCell.col !== 4) {
-      selectedCell.td.innerText = formatRupiah(newVal);
-    } else {
+    // ✅ Khusus Sheet1 Kolom D → desimal murni
+    if (sheet === "Sheet1" && selectedCell.col === 4) {
+      current = current.replace(",", "."); 
+      if (num === "." && current.includes(".")) return;
+      if (num === "," && current.includes(".")) return;
+
+      let newVal = current + (num === "," ? "." : num);
       selectedCell.td.innerText = newVal;
-    }
 
-    editedCells[`${selectedCell.row},${selectedCell.col}`] = {
-      row: selectedCell.row, col: selectedCell.col, value: newVal
-    };
+      editedCells[`${selectedCell.row},${selectedCell.col}`] = {
+        row: selectedCell.row, col: selectedCell.col, value: newVal
+      };
+
+    } else {
+      // ✅ Kolom lain tetap Rupiah
+      current = current.replace("Rp","").replace(/\s/g,"").replace(/\./g,"").replace(/,/g,"").trim();
+      let newVal = current + num;
+
+      if (!isNaN(newVal) && newVal !== "") {
+        selectedCell.td.innerText = formatRupiah(newVal);
+      } else {
+        selectedCell.td.innerText = newVal;
+      }
+
+      editedCells[`${selectedCell.row},${selectedCell.col}`] = {
+        row: selectedCell.row, col: selectedCell.col, value: newVal
+      };
+    }
   }
 }
 
 function clearCell() {
   if (selectedCell && !selectedCell.td.querySelector("select")) {
     let sheet = document.getElementById("sheetSelect").value;
-    if (isLockedCell(sheet, selectedCell.row, selectedCell.col)) return; // prevent clear
+    if (isLockedCell(sheet, selectedCell.row, selectedCell.col)) return;
+
     selectedCell.td.innerText = "";
     editedCells[`${selectedCell.row},${selectedCell.col}`] = {
       row: selectedCell.row, col: selectedCell.col, value: ""
