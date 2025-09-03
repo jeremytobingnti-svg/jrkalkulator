@@ -154,11 +154,15 @@ async function loadData(sheet="Sheet1") {
               };
               td.appendChild(select);
             } else {
-              // Kolom D → tampil apa adanya, lainnya format Rupiah
-              if (j === 3) {
-                td.innerText = val;
-              } else {
-                td.innerText = (!isNaN(val) && val !== "") ? formatRupiah(val) : val;
+              // Bedakan format berdasarkan sheet
+              if (sheet === "Sheet1") {
+                if (j === 3) {
+                  td.innerText = val; // kolom D → angka murni
+                } else {
+                  td.innerText = (!isNaN(val) && val !== "") ? formatRupiah(val) : val;
+                }
+              } else if (sheet === "Sheet2") {
+                td.innerText = val; // semua angka tampil apa adanya
               }
               td.onclick = () => selectCell(i+1, j+1, td);
             }
@@ -184,10 +188,17 @@ function selectCell(row, col, td) {
 
 function enterNum(num) {
   if (selectedCell && !selectedCell.td.querySelector("select")) {
+    let sheet = document.getElementById("sheetSelect").value;
     let current = selectedCell.td.innerText.replace("Rp","").trim();
     if (num === "." && current.includes(".")) return;
     let newVal = current + num;
-    selectedCell.td.innerText = (selectedCell.col === 4) ? newVal : formatRupiah(newVal);
+
+    if (sheet === "Sheet1" && selectedCell.col !== 4) {
+      selectedCell.td.innerText = formatRupiah(newVal);
+    } else {
+      selectedCell.td.innerText = newVal;
+    }
+
     editedCells[`${selectedCell.row},${selectedCell.col}`] = {
       row: selectedCell.row, col: selectedCell.col, value: newVal
     };
