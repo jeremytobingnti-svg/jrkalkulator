@@ -17,14 +17,32 @@
     td.active { background:#ffe58f !important; font-weight:bold; border:2px solid #f0ad4e; }
     select { padding:5px; font-size:12px; border-radius:6px; width:100%; }
     tbody td:first-child, thead th:first-child { font-weight:bold; }
-    #keypad { position:fixed; bottom:0; left:0; right:0; width:100%; background:#f9f9f9; padding:1px; display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; box-shadow:0 -2px 5px rgba(0,0,0,0.15); border-radius:12px 12px 0 0; z-index:1000; }
-    #keypad button { padding:14px; font-size:16px; border:none; border-radius:10px; background:#007bff; color:white; cursor:pointer; transition:0.2s; }
+
+    #keypad {
+      position:fixed; bottom:0; left:0; right:0; width:100%;
+      background:#f9f9f9; padding:4px;
+      display:grid; grid-template-columns:repeat(3, 1fr); gap:4px;
+      box-shadow:0 -2px 5px rgba(0,0,0,0.15);
+      border-radius:10px 10px 0 0; z-index:1000;
+    }
+    #keypad button {
+      padding:8px; font-size:14px; border:none; border-radius:8px;
+      background:#007bff; color:white; cursor:pointer; transition:0.2s;
+    }
     #keypad button:hover { opacity:0.9; }
     #keypad button:active { transform:scale(0.95); }
     #keypad .wide { grid-column:span 3; background:#28a745; }
     #keypad .clear { background:#dc3545; }
-    @media (max-width:600px){ h2{font-size:16px;} #sheetSelect{font-size:13px;} thead th,tbody td{font-size:11px;padding:4px;} #keypad button{font-size:14px;padding:12px;} }
-    #loadingOverlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.8); display:none; justify-content:center; align-items:center; font-size:18px; font-weight:bold; color:#007bff; z-index:2000; }
+    @media (max-width:600px){
+      #keypad button { font-size:12px; padding:6px; }
+    }
+
+    #loadingOverlay {
+      position:fixed; top:0; left:0; right:0; bottom:0;
+      background:rgba(255,255,255,0.8);
+      display:none; justify-content:center; align-items:center;
+      font-size:18px; font-weight:bold; color:#007bff; z-index:2000;
+    }
   </style>
 </head>
 <body>
@@ -64,13 +82,9 @@ let sheetData = [];
 let dropdownOptions = {};
 let editedCells = {};
 
-function formatNumber(num) {
-  if (num === "" || num === null || isNaN(num)) return num;
-  return Number(num).toLocaleString("id-ID", { minimumFractionDigits: 0, maximumFractionDigits: 10 });
-}
-function parseNumber(str) {
-  if (!str) return "";
-  return str.replace(/\./g, "").replace(",", "."); 
+function formatRupiah(value) {
+  if (value === "" || value === null || isNaN(value)) return value;
+  return "Rp " + Number(value).toLocaleString("id-ID", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
 function getHiddenCols(sheet) {
@@ -127,8 +141,6 @@ async function loadData(sheet="Sheet1") {
                 if (opt === val) option.selected = true;
                 select.appendChild(option);
               });
-
-              // 🔥 auto save dropdown
               select.onchange = async () => {
                 let edit = { row: i+1, col: j+1, value: select.value };
                 await fetch(WEB_APP_URL, {
@@ -142,7 +154,12 @@ async function loadData(sheet="Sheet1") {
               };
               td.appendChild(select);
             } else {
-              td.innerText = val;
+              // Kolom D → tampil apa adanya, lainnya format Rupiah
+              if (j === 3) {
+                td.innerText = val;
+              } else {
+                td.innerText = (!isNaN(val) && val !== "") ? formatRupiah(val) : val;
+              }
               td.onclick = () => selectCell(i+1, j+1, td);
             }
             tr.appendChild(td);
@@ -167,15 +184,12 @@ function selectCell(row, col, td) {
 
 function enterNum(num) {
   if (selectedCell && !selectedCell.td.querySelector("select")) {
-    let current = selectedCell.td.innerText || "";
+    let current = selectedCell.td.innerText.replace("Rp","").trim();
     if (num === "." && current.includes(".")) return;
     let newVal = current + num;
-    selectedCell.td.innerText = newVal;
-
-    // 🚀 simpan string apa adanya (biar desimal tidak hilang)
+    selectedCell.td.innerText = (selectedCell.col === 4) ? newVal : formatRupiah(newVal);
     editedCells[`${selectedCell.row},${selectedCell.col}`] = {
-      row: selectedCell.row, col: selectedCell.col,
-      value: newVal
+      row: selectedCell.row, col: selectedCell.col, value: newVal
     };
   }
 }
