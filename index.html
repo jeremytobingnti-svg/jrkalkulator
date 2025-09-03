@@ -128,7 +128,7 @@ async function loadData(sheet="Sheet1") {
                 select.appendChild(option);
               });
 
-              // 🔥 auto save + refresh saat dropdown berubah
+              // 🔥 auto save dropdown
               select.onchange = async () => {
                 let edit = { row: i+1, col: j+1, value: select.value };
                 await fetch(WEB_APP_URL, {
@@ -142,11 +142,7 @@ async function loadData(sheet="Sheet1") {
               };
               td.appendChild(select);
             } else {
-              if (j === 3) {
-                td.innerText = val;
-              } else {
-                td.innerText = (!isNaN(val) && val !== "") ? formatNumber(val) : val;
-              }
+              td.innerText = val;
               td.onclick = () => selectCell(i+1, j+1, td);
             }
             tr.appendChild(td);
@@ -175,9 +171,11 @@ function enterNum(num) {
     if (num === "." && current.includes(".")) return;
     let newVal = current + num;
     selectedCell.td.innerText = newVal;
+
+    // 🚀 simpan string apa adanya (biar desimal tidak hilang)
     editedCells[`${selectedCell.row},${selectedCell.col}`] = {
       row: selectedCell.row, col: selectedCell.col,
-      value: parseFloat(parseNumber(newVal))
+      value: newVal
     };
   }
 }
