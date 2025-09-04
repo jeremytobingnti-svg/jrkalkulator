@@ -97,20 +97,20 @@ function getHiddenCols(sheet) {
   return [];
 }
 
-
 function isLockedCell(sheet, row, col) {
   if (sheet === "Sheet1") {
-    // Kolom C terkunci kecuali 10,18,22
-    if (col === 3 && !(row === 10 || row === 18 || row === 22)) {
+    // Kolom C terkunci kecuali baris 10 & 18
+    if (col === 3 && !(row === 10 || row === 18)) {
       return true;
     }
-    // Kolom E terkunci SEMUA baris, termasuk 10 & 18
-    if (col === 5) {
+    // Kolom E terkunci semua kecuali baris 22
+    if (col === 5 && row !== 22) {
       return true;
     }
   }
   return false;
 }
+
 
 async function loadData(sheet="Sheet1") {
   const overlay = document.getElementById("loadingOverlay");
