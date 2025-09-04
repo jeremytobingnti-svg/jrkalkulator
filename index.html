@@ -97,10 +97,15 @@ function getHiddenCols(sheet) {
   return [];
 }
 
+
 function isLockedCell(sheet, row, col) {
   if (sheet === "Sheet1") {
-    // Lock kolom C (3) & E (5), kecuali baris 22
-    if ((col === 3 || col === 5) && row !== 22) {
+    // Kolom C terkunci kecuali 10,18,22
+    if (col === 3 && !(row === 10 || row === 18 || row === 22)) {
+      return true;
+    }
+    // Kolom E terkunci SEMUA baris, termasuk 10 & 18
+    if (col === 5) {
       return true;
     }
   }
@@ -148,7 +153,6 @@ async function loadData(sheet="Sheet1") {
           if (!hiddenCols.includes(j)) {
             let td = document.createElement("td");
 
-            // Kolom B pakai dropdown
             if (j === 1 && dropdownOptions[i+1]) {
               let select = document.createElement("select");
               dropdownOptions[i+1].forEach(opt => {
@@ -173,7 +177,7 @@ async function loadData(sheet="Sheet1") {
             } else {
               if (sheet === "Sheet1") {
                 if (j === 3) {
-                  td.innerText = val; // ✅ Kolom D tampil mentah (desimal)
+                  td.innerText = val; // Kolom D raw (desimal)
                 } else {
                   td.innerText = (!isNaN(val) && val !== "") ? formatRupiah(val) : val;
                 }
@@ -216,7 +220,6 @@ function enterNum(num) {
 
     let current = selectedCell.td.innerText.trim();
 
-    // ✅ Khusus Sheet1 Kolom D → desimal murni
     if (sheet === "Sheet1" && selectedCell.col === 4) {
       current = current.replace(",", "."); 
       if (num === "." && current.includes(".")) return;
@@ -230,7 +233,6 @@ function enterNum(num) {
       };
 
     } else {
-      // ✅ Kolom lain tetap Rupiah
       current = current.replace("Rp","").replace(/\s/g,"").replace(/\./g,"").replace(/,/g,"").trim();
       let newVal = current + num;
 
